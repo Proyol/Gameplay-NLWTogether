@@ -11,12 +11,14 @@ type CategoryProps = RectButtonProps & {
     title: string;
     icon: React.FC<SvgProps>;
     checked?: boolean;
+    hasCheckbox?: boolean
 }
 
 export const Category: React.FC<CategoryProps> = ({
     title,
     icon: Icon,
     checked = false,
+    hasCheckbox = false,
     ...rest
 }) => {
     return (
@@ -24,18 +26,29 @@ export const Category: React.FC<CategoryProps> = ({
             {...rest}
         >
             <LinearGradient 
-                style={[styles.container, { opacity: checked ? 1 : 0.5 }]}
+                style={styles.container}
                 colors={[
-                    checked ? 
-                        theme.colors.secondary85 : 
-                        theme.colors.secondary50, 
-                    theme.colors.secondary40 
+                    theme.colors.secondary50,
+                    theme.colors.secondary70
                 ]}
             >
-                <View
-                    style={[styles.content, { opacity: checked ? 1 : 0.4 }]}
+                <LinearGradient
+                    style={[
+                        styles.content, 
+                        { opacity: checked ? 1 : 0.5 }
+                    ]}
+                    colors={[
+                        checked ? 
+                            theme.colors.secondary85 : 
+                            theme.colors.secondary50,
+                        theme.colors.secondary40
+                    ]}
                 >
-                    <View style={checked ? styles.checked : styles.check} />
+                    {
+                        hasCheckbox &&
+                        <View style={checked ? styles.checked : styles.check} />
+                    }
+
                     <Icon 
                         width={48}
                         height={48}
@@ -44,7 +57,7 @@ export const Category: React.FC<CategoryProps> = ({
                     <Text style={styles.title}>
                         {title}
                     </Text>
-                </View>
+                </LinearGradient>
             </LinearGradient>
         </RectButton>
     )
