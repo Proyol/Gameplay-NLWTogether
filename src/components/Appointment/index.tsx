@@ -1,4 +1,5 @@
 import React from 'react'
+import { LinearGradient } from 'expo-linear-gradient'
 import { RectButtonProps, RectButton } from 'react-native-gesture-handler'
 import { View, Text } from 'react-native'
 
@@ -7,18 +8,12 @@ import { GuildIcon } from '../GuildIcon'
 import { categories } from '../../utils/categories'
 import PlayerSVG from  '../../assets/player.svg'
 import CalendarSVG from  '../../assets/calendar.svg'
+import { GuildDataProps } from '../Guild'
 import { theme } from '../../global/styles/theme'
-
-export type GuildProps = {
-    id: string,
-    name: string,
-    icon: null
-    owner: boolean;
-}
 
 export type ApointmentDataProps = {
     id: string,
-    guild: GuildProps,
+    guild: GuildDataProps,
     category: string,
     date: string,
     description: string
@@ -37,7 +32,18 @@ export const Appointment: React.FC<AppointmentProps> = ({ data, ...rest }) => {
             {...rest}
         >
             <View style={styles.container}>
-                <GuildIcon />
+                <LinearGradient
+                    style={styles.guildIconContainer}
+                    colors={[
+                        theme.colors.secondary50,
+                        theme.colors.secondary70
+                    ]}
+                >
+                    <GuildIcon 
+                        guildId={data.guild.id}
+                        iconId={data.guild.icon}
+                    />
+                </LinearGradient>
 
                 <View style={styles.content}>
                     <View style={styles.header}>
@@ -46,7 +52,7 @@ export const Appointment: React.FC<AppointmentProps> = ({ data, ...rest }) => {
                         </Text>
 
                         <Text style={styles.category}>
-                            {category.title}
+                            {category ? category.title : 'Sem categoria'}
                         </Text>
                     </View>
 

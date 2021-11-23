@@ -16,6 +16,7 @@
         "svg"
       ]
     },
+    "scheme": "gameplay",
     "name": "Gameplay-NLWTogether",
     "slug": "Gameplay-NLWTogether",
     "version": "1.0.0",

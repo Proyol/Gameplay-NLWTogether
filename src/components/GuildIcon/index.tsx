@@ -1,16 +1,33 @@
 import React from 'react'
-import { RectButtonProps, RectButton } from 'react-native-gesture-handler'
-import { Image } from 'react-native'
+import { Image, View } from 'react-native'
+
+const { CDN_IMAGE } = process.env;
 
 import { styles } from './styles'
-import DiscordImg from '../../assets/discord.png'
+import DiscordSVG from '../../assets/discord.svg'
 
-export const GuildIcon: React.FC = () => {
+type GuildIconProps = {
+    guildId: string;
+    iconId: string | null;
+}
+
+export const GuildIcon: React.FC<GuildIconProps> = ({ guildId, iconId }) => {
+    const uri = `${CDN_IMAGE}/icons/${guildId}/${iconId}.png`;
+
     return (
-        <Image 
-            source={DiscordImg}
-            style={styles.image} 
-            resizeMode="cover"
-        />
+        <View style={styles.container}>
+            {
+                iconId
+                ? <Image 
+                    source={{ uri }}
+                    style={styles.image} 
+                    resizeMode="cover"
+                />
+                : <DiscordSVG 
+                    width={40}
+                    height={40}
+                  />
+            }
+        </View>
     )
 }

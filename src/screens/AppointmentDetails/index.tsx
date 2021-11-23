@@ -1,42 +1,82 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BorderlessButton } from 'react-native-gesture-handler';
-import { ImageBackground, Text, View, FlatList } from 'react-native';
+import { ImageBackground, Text, View, FlatList, Alert, Share, Platform } from 'react-native';
 import { Fontisto } from '@expo/vector-icons'
+import { useRoute } from '@react-navigation/core';
+import * as Linking from 'expo-linking';
 
 import { Background } from '../../components/Background';
 import { Header } from '../../components/Header';
-import { theme } from '../../global/styles/theme';
-
 import BannerImg from '../../assets/banner.png'
-
-import { styles } from './styles';
 import { ListHeader } from '../../components/ListHeader';
-import { Member } from '../../components/Member';
+import { Member, MemberDataProps } from '../../components/Member';
 import { ListDivider } from '../../components/ListDivider';
 import { ButtonIcon } from '../../components/ButtonIcon';
+import { ApointmentDataProps } from '../../components/Appointment';
+import { styles } from './styles';
+import { theme } from '../../global/styles/theme';
+import { api } from '../../services/api';
+import { Load } from '../../components/Load';
+
+type RouteParams = {
+    guildSelected: ApointmentDataProps;
+}
+
+type GuildWidget = {
+    id: string;
+    name: string;
+    instant_invite: string;
+    members: MemberDataProps[];
+    presence_count: number;
+}
 
 export const AppointmentDetails = () => {
-    const members = [
-        {
-            id: '1',
-            username: 'Daniel',
-            avatar_url: "https://avatars.githubusercontent.com/u/52104910?v=4",
-            status: 'online'
-        },
-        {
-            id: '2',
-            username: 'Daniel',
-            avatar_url: "https://avatars.githubusercontent.com/u/52104910?v=4",
-            status: 'offline'
+    const route = useRoute();
+    const { guildSelected } = route.params as RouteParams;
+
+    const [widget, setWidget] = useState<GuildWidget>({} as GuildWidget);
+    const [loading, setLoading] = useState(true);
+
+    async function fetchGuildWidget(){
+        try{
+            const response = await api.get(`/guilds/${guildSelected.guild.id}/widget.json`);
+
+            setWidget(response.data);
+        } catch(error: any) {
+            Alert.alert('Verifique as confirgurações do servidor. Será que a opção de widget está habilitado?')
+        } finally {
+            setLoading(false);
         }
-    ]
-    
+    }
+
+    async function handleShareInvitation(){
+        const message = Platform.OS === 'ios' ?
+            `Junte-se a ${guildSelected.guild.name}` :
+            widget.instant_invite;
+
+        await Share.share({
+            message,
+            url: widget.instant_invite
+        })
+    }
+
+    function handleOpenGuild(){
+        Linking.openURL(widget.instant_invite);
+    }
+
+    useEffect(() => {
+        fetchGuildWidget()
+    }, [])
+
     return (
         <Background>
             <Header 
                 title="Detalhes"
                 action={
-                    <BorderlessButton>
+                    guildSelected.guild.owner &&
+                    <BorderlessButton
+                        onPress={handleShareInvitation}
+                    >
                         <Fontisto 
                             name="share"
                             size={24}
@@ -52,35 +92,45 @@ export const AppointmentDetails = () => {
             >
                 <View style={styles.bannerContent}>
                     <Text style={styles.title}>
-                        Lendários
+                        {guildSelected.guild.name}
                     </Text>
                     <Text style={styles.subtitle}>
-                        É hoje que vamos chegar no challenger sem perder uma partida da md10
+                        {guildSelected.description}
                     </Text>
                 </View>
             </ImageBackground>
 
-            <ListHeader 
-                title="Jogadores"
-                subtitle="Total 3"
-            />
-            <FlatList 
-                data={members}
-                keyExtractor={item => item.id}
-                renderItem={({item}) => (
-                    <Member 
-                        data={item}
+            {
+                loading
+                ? <Load />
+                : <>
+                    <ListHeader 
+                        title="Jogadores"
+                        subtitle={`Total ${widget.presence_count}`}
                     />
-                )}
-                ItemSeparatorComponent={ListDivider}
-                style={styles.members}
-            />
+                    <FlatList 
+                        data={widget.members}
+                        keyExtractor={item => item.id}
+                        renderItem={({item}) => (
+                            <Member 
+                                data={item}
+                            />
+                        )}
+                        ItemSeparatorComponent={() => <ListDivider isCentered/>}
+                        style={styles.members}
+                    />
+                </>
+            }
 
-            <View style={styles.footer}>
-                <ButtonIcon 
-                    title="Entrar na partida"
-                />
-            </View>
+            {
+                guildSelected.guild.owner &&
+                <View style={styles.footer}>
+                    <ButtonIcon 
+                        onPress={handleOpenGuild}
+                        title="Entrar na partida"
+                    />
+                </View>
+            }
         </Background>
     )
 }
